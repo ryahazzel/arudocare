@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import 'register_screen.dart'; 
+import '../../product/presentations/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -73,8 +75,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         );
 
                         if (success) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Login Success! JWT Saved.')),
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const HomeScreen()),
                           );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -88,6 +91,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         'Masuk',
                         style: TextStyle(fontSize: 16, color: Colors.white),
                       ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                  );
+                },
+                child: const Text('Does not have account? Register here', style: TextStyle(color: Color(0xFF39A28F))),
               ),
             ],
           ),

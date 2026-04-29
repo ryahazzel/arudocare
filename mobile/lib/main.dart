@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/auth/presentations/login_screen.dart';
+import 'features/auth/presentations/register_screen.dart';
+import 'features/product/presentations/home_screen.dart';
 
 void main() {
   runApp(
@@ -26,7 +28,12 @@ class MyApp extends StatelessWidget {
         primaryColor: const Color(0xFF39A28F),
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF39A28F)),
       ),
-      home: LoginScreen(),
+      initialRoute: '/login',
+      routes: {
+        '/login': (context) => LoginScreen(),
+        '/register': (context) => const RegisterScreen(),
+        '/home': (context) => const HomeScreen(),
+      },
     );
   }
 }
