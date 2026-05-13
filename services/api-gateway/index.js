@@ -13,11 +13,16 @@ app.use('/api/auth', proxy(process.env.AUTH_SERVICE_URL, {
     proxyReqPathResolver: (req) => `/api/auth${req.url}`,
 }));
 
+app.use('/api/products', proxy(process.env.PRODUCT_SERVICE_URL, {
+    proxyReqPathResolver: (req) => `/api/products${req.url}`,
+}));
+
 app.get('/health', (req, res) => {
     res.json({ status: 'API Gateway running', port: PORT });
 });
 
 app.listen(PORT, () => {
     console.log(`API Gateway running on http://localhost:${PORT}`);
-    console.log(`  /api/auth  ->  ${process.env.AUTH_SERVICE_URL}`);
+    console.log(`  /api/auth      ->  ${process.env.AUTH_SERVICE_URL}`);
+    console.log(`  /api/products  ->  ${process.env.PRODUCT_SERVICE_URL}`);
 });
