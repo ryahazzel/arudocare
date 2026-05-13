@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import '../../../shared/theme.dart';
 import '../../../features/auth/providers/auth_provider.dart';
+import '../../product/presentations/product_detail_screen.dart';
 import '../providers/home_provider.dart';
 import '../models/product_model.dart';
 
@@ -518,7 +519,14 @@ class _DealCard extends StatelessWidget {
     final colorIndex = int.parse(product.id) % colors.length;
 
     return GestureDetector(
-      onTap: () {},
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (ctx) => ProductDetailScreen(product: product),
+          ),
+        );
+      },
       child: Container(
         width: 160,
         decoration: BoxDecoration(
@@ -526,7 +534,7 @@ class _DealCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha:0.07),
+              color: Colors.black.withValues(alpha: 0.07),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -535,41 +543,71 @@ class _DealCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image placeholder
-            Container(
-              height: 100,
-              decoration: BoxDecoration(
-                color: colors[colorIndex],
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-              child: Stack(
-                children: [
-                  Center(
-                    child: Icon(Icons.fastfood_outlined,
-                        size: 48, color: iconColors[colorIndex]),
-                  ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: kOrangeColor,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '-${product.discountPercent}%',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
+              child: SizedBox(
+                height: 100,
+                width: double.infinity,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    product.imageUrl != null
+                        ? Hero(
+                            tag: 'product_${product.id}',
+                            child: Image.network(
+                              product.imageUrl!,
+                              fit: BoxFit.cover,
+                              loadingBuilder: (ctx, child, progress) =>
+                                  progress == null
+                                      ? child
+                                      : Container(
+                                          color: colors[colorIndex],
+                                          child: const Center(
+                                            child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: kPrimaryColor),
+                                          ),
+                                        ),
+                              errorBuilder: (ctx, e, st) => Container(
+                                color: colors[colorIndex],
+                                child: Center(
+                                  child: Icon(Icons.fastfood_outlined,
+                                      size: 48,
+                                      color: iconColors[colorIndex]),
+                                ),
+                              ),
+                            ),
+                          )
+                        : Container(
+                            color: colors[colorIndex],
+                            child: Center(
+                              child: Icon(Icons.fastfood_outlined,
+                                  size: 48, color: iconColors[colorIndex]),
+                            ),
+                          ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 7, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: kOrangeColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '-${product.discountPercent}%',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             // Info

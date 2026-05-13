@@ -8,6 +8,9 @@ class ProductModel {
   final String category;
   final double distanceKm;
   final String? imageUrl;
+  final String? description;
+  final String? pickupTimeStart;
+  final String? pickupTimeEnd;
 
   const ProductModel({
     required this.id,
@@ -19,6 +22,9 @@ class ProductModel {
     required this.category,
     required this.distanceKm,
     this.imageUrl,
+    this.description,
+    this.pickupTimeStart,
+    this.pickupTimeEnd,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
@@ -32,6 +38,9 @@ class ProductModel {
       category: json['category'] ?? '',
       distanceKm: (json['distance_km'] ?? 0).toDouble(),
       imageUrl: json['image_url'],
+      description: json['description'],
+      pickupTimeStart: (json['pickup_time_start'] as String?)?.substring(0, 5),
+      pickupTimeEnd: (json['pickup_time_end'] as String?)?.substring(0, 5),
     );
   }
 
