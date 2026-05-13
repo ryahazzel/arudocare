@@ -3,13 +3,15 @@ import 'package:provider/provider.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/auth/presentations/login_screen.dart';
 import 'features/auth/presentations/register_screen.dart';
-import 'features/product/presentations/home_screen.dart';
+import 'features/home/providers/home_provider.dart';
+import 'features/home/presentations/home_screen.dart';
 
 void main() {
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => HomeProvider()),
       ],
       child: const MyApp(),
     ),

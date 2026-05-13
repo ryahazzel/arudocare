@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import 'register_screen.dart'; 
-import '../../product/presentations/home_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -77,14 +76,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         );
 
                         if (success) {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const HomeScreen()),
-                          );
+                          Navigator.pushReplacementNamed(context, '/home');
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Login Failed. Check email/password.')),
-                          );
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Login Failed. Check email/password.')),
+                            );
+                          }
                         }
                       },
                 child: authProvider.isLoading
