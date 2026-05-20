@@ -49,7 +49,16 @@ class AuthProvider with ChangeNotifier {
     return false;
   }
 
-  Future<bool> register(String name, String email, String password) async {
+  Future<void> logout() async {
+    _token = null;
+    _user = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('jwt_token');
+    await prefs.remove('user_name');
+    notifyListeners();
+  }
+
+  Future<bool> register(String name, String email, String password, String role) async {
     _isLoading = true;
     notifyListeners();
 
@@ -58,7 +67,7 @@ class AuthProvider with ChangeNotifier {
         'name': name,
         'email': email,
         'password': password,
-        'role': 'customer',
+        'role': role,
       });
 
       if (response.statusCode == 201) {

@@ -5,6 +5,10 @@ import 'features/auth/presentations/login_screen.dart';
 import 'features/auth/presentations/register_screen.dart';
 import 'features/home/providers/home_provider.dart';
 import 'features/home/presentations/home_screen.dart';
+import 'features/map/presentations/map_screen.dart';
+import 'features/order/providers/order_provider.dart';
+import 'features/merchant/providers/merchant_provider.dart';
+import 'features/merchant/presentations/merchant_dashboard_screen.dart';
 
 void main() {
   runApp(
@@ -12,6 +16,8 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => HomeProvider()),
+        ChangeNotifierProvider(create: (_) => OrderProvider()),
+        ChangeNotifierProvider(create: (_) => MerchantProvider()),
       ],
       child: const MyApp(),
     ),
@@ -35,6 +41,8 @@ class MyApp extends StatelessWidget {
         '/login': (context) => LoginScreen(),
         '/register': (context) => const RegisterScreen(),
         '/home': (context) => const HomeScreen(),
+        '/map': (context) => const MapScreen(),
+        '/merchant-home': (context) => const MerchantDashboardScreen(),
       },
     );
   }

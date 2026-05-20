@@ -2,6 +2,7 @@ class ProductModel {
   final String id;
   final String name;
   final String merchantName;
+  final int merchantId;
   final double originalPrice;
   final double discountPrice;
   final int stock;
@@ -16,6 +17,7 @@ class ProductModel {
     required this.id,
     required this.name,
     required this.merchantName,
+    required this.merchantId,
     required this.originalPrice,
     required this.discountPrice,
     required this.stock,
@@ -32,6 +34,7 @@ class ProductModel {
       id: json['id'].toString(),
       name: json['name'],
       merchantName: json['merchant_name'] ?? '',
+      merchantId: (json['merchant_id'] as num?)?.toInt() ?? 0,
       originalPrice: (json['original_price'] as num).toDouble(),
       discountPrice: (json['discount_price'] as num).toDouble(),
       stock: json['stock'] as int,

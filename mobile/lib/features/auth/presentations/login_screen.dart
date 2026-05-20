@@ -76,7 +76,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         );
 
                         if (success) {
-                          Navigator.pushReplacementNamed(context, '/home');
+                          final role = authProvider.user?['role'] ?? 'customer';
+                          final route = role == 'merchant' ? '/merchant-home' : '/home';
+                          Navigator.pushReplacementNamed(context, route);
                         } else {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(

@@ -36,6 +36,10 @@ dependencies:
   carousel_slider: ^5.0.0
   dio: ^5.9.2
   shared_preferences: ^2.5.5
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+  qr_flutter: ^4.1.0
+  mobile_scanner: ^5.2.3
 
 dev_dependencies:
   flutter_test:

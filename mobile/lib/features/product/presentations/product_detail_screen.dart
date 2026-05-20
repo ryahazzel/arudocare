@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../home/models/product_model.dart';
+import '../../order/presentations/checkout_screen.dart';
 import '../../../shared/theme.dart';
 
 class ProductDetailScreen extends StatelessWidget {
@@ -98,11 +99,10 @@ class ProductDetailScreen extends StatelessWidget {
           ),
           onPressed: product.stock > 0
               ? () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('${product.name} berhasil diamankan!'),
-                      backgroundColor: kPrimaryColor,
-                      behavior: SnackBarBehavior.floating,
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CheckoutScreen(product: product),
                     ),
                   );
                 }

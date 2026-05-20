@@ -4,6 +4,10 @@ import 'package:carousel_slider/carousel_slider.dart';
 import '../../../shared/theme.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../product/presentations/product_detail_screen.dart';
+import '../../map/presentations/map_screen.dart';
+import '../../order/presentations/orders_screen.dart';
+import '../../order/providers/order_provider.dart';
+import '../../profile/presentations/profile_screen.dart';
 import '../providers/home_provider.dart';
 import '../models/product_model.dart';
 
@@ -16,6 +20,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _activeBannerIndex = 0;
+  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -33,34 +38,89 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kBackgroundColor,
-      appBar: _buildAppBar(context),
-      body: RefreshIndicator(
-        onRefresh: _onRefresh,
-        color: kPrimaryColor,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              const _SearchBar(),
-              const SizedBox(height: 16),
-              const _UserInfoCard(),
-              const SizedBox(height: 20),
-              _BannerCarousel(
-                activeIndex: _activeBannerIndex,
-                onPageChanged: (index) =>
-                    setState(() => _activeBannerIndex = index),
-              ),
-              const SizedBox(height: 20),
-              const _CategorySection(),
-              const SizedBox(height: 20),
-              const _NearbyDealsSection(),
-              const SizedBox(height: 24),
-            ],
-          ),
+      appBar: _selectedIndex == 0 ? _buildAppBar(context) : null,
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [
+          _buildHomeBody(),
+          const MapScreen(),
+          const OrdersScreen(),
+          const ProfileScreen(),
+        ],
+      ),
+      bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildHomeBody() {
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      color: kPrimaryColor,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            const _SearchBar(),
+            const SizedBox(height: 16),
+            const _UserInfoCard(),
+            const SizedBox(height: 20),
+            _BannerCarousel(
+              activeIndex: _activeBannerIndex,
+              onPageChanged: (index) =>
+                  setState(() => _activeBannerIndex = index),
+            ),
+            const SizedBox(height: 20),
+            const _CategorySection(),
+            const SizedBox(height: 20),
+            const _NearbyDealsSection(),
+            const SizedBox(height: 24),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return BottomNavigationBar(
+      currentIndex: _selectedIndex,
+      onTap: (i) {
+        setState(() => _selectedIndex = i);
+        if (i == 2) {
+          final auth = Provider.of<AuthProvider>(context, listen: false);
+          final userId = (auth.user?['id'] as num?)?.toInt() ?? 0;
+          Provider.of<OrderProvider>(context, listen: false).fetchUserOrders(userId);
+        }
+      },
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: kPrimaryColor,
+      unselectedItemColor: Colors.grey[400],
+      selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 11),
+      unselectedLabelStyle: const TextStyle(fontSize: 11),
+      elevation: 12,
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home_outlined),
+          activeIcon: Icon(Icons.home_rounded),
+          label: 'Beranda',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.map_outlined),
+          activeIcon: Icon(Icons.map_rounded),
+          label: 'Peta',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.receipt_long_outlined),
+          activeIcon: Icon(Icons.receipt_long_rounded),
+          label: 'Pesanan',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_outline),
+          activeIcon: Icon(Icons.person_rounded),
+          label: 'Profil',
+        ),
+      ],
     );
   }
 
