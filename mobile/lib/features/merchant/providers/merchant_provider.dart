@@ -52,7 +52,6 @@ class MerchantProvider with ChangeNotifier {
         _orders = List<Map<String, dynamic>>.from(response.data as List);
       }
     } on DioException {
-      // Pertahankan data yang ada jika API tidak tersedia
     }
 
     _isLoading = false;
@@ -69,7 +68,6 @@ class MerchantProvider with ChangeNotifier {
         _inventory = List<Map<String, dynamic>>.from(response.data as List);
       }
     } on DioException {
-      // Keep existing data if API unavailable
     }
 
     _isInventoryLoading = false;
@@ -103,6 +101,8 @@ class MerchantProvider with ChangeNotifier {
     required int categoryId,
     required String pickupTimeStart,
     required String pickupTimeEnd,
+    double? latitude,
+    double? longitude,
   }) async {
     _isSubmitting = true;
     _error = null;
@@ -120,6 +120,8 @@ class MerchantProvider with ChangeNotifier {
         'category_id': categoryId,
         'pickup_time_start': pickupTimeStart,
         'pickup_time_end': pickupTimeEnd,
+        'latitude': ?latitude,
+        'longitude': ?longitude,
       });
 
       _isSubmitting = false;

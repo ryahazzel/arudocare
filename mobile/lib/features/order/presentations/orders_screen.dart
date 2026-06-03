@@ -54,8 +54,6 @@ class _OrdersScreenState extends State<OrdersScreen>
   }
 }
 
-// ── Header ────────────────────────────────────────────────────────────────────
-
 class _Header extends StatelessWidget {
   final TabController tabController;
   const _Header({required this.tabController});
@@ -90,8 +88,6 @@ class _Header extends StatelessWidget {
     );
   }
 }
-
-// ── Active tab ────────────────────────────────────────────────────────────────
 
 class _ActiveTab extends StatelessWidget {
   final Future<void> Function() onRefresh;
@@ -150,7 +146,6 @@ class _ActiveOrderCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top info
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
             child: Column(
@@ -189,7 +184,6 @@ class _ActiveOrderCard extends StatelessWidget {
             ),
           ),
           const Padding(padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12), child: Divider(height: 1)),
-          // QR Code section
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Column(
@@ -233,8 +227,6 @@ class _ActiveOrderCard extends StatelessWidget {
     );
   }
 }
-
-// ── History tab ───────────────────────────────────────────────────────────────
 
 class _HistoryTab extends StatelessWidget {
   const _HistoryTab();
@@ -330,8 +322,6 @@ class _HistoryOrderCard extends StatelessWidget {
   }
 }
 
-// ── Shared widgets ────────────────────────────────────────────────────────────
-
 class _StatusChip extends StatelessWidget {
   final String status;
   const _StatusChip({required this.status});
@@ -394,8 +384,6 @@ class _EmptyState extends StatelessWidget {
     );
   }
 }
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 String _fmtDate(String? iso) {
   if (iso == null) return '-';

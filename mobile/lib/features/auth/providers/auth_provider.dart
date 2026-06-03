@@ -58,7 +58,14 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> register(String name, String email, String password, String role) async {
+  Future<bool> register(
+    String name,
+    String email,
+    String password,
+    String role, {
+    double? latitude,
+    double? longitude,
+  }) async {
     _isLoading = true;
     notifyListeners();
 
@@ -68,6 +75,8 @@ class AuthProvider with ChangeNotifier {
         'email': email,
         'password': password,
         'role': role,
+        'latitude': ?latitude,
+        'longitude': ?longitude,
       });
 
       if (response.statusCode == 201) {

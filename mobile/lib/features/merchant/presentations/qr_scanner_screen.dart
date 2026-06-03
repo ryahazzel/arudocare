@@ -177,16 +177,15 @@ class _OverlayPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     const c = 22.0;
-    // Top-left
     canvas.drawLine(cutout.topLeft + const Offset(c, 0), cutout.topLeft, cornerPaint);
     canvas.drawLine(cutout.topLeft, cutout.topLeft + const Offset(0, c), cornerPaint);
-    // Top-right
+
     canvas.drawLine(cutout.topRight + const Offset(-c, 0), cutout.topRight, cornerPaint);
     canvas.drawLine(cutout.topRight, cutout.topRight + const Offset(0, c), cornerPaint);
-    // Bottom-left
+
     canvas.drawLine(cutout.bottomLeft + const Offset(c, 0), cutout.bottomLeft, cornerPaint);
     canvas.drawLine(cutout.bottomLeft, cutout.bottomLeft + const Offset(0, -c), cornerPaint);
-    // Bottom-right
+
     canvas.drawLine(cutout.bottomRight + const Offset(-c, 0), cutout.bottomRight, cornerPaint);
     canvas.drawLine(cutout.bottomRight, cutout.bottomRight + const Offset(0, -c), cornerPaint);
   }

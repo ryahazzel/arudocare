@@ -87,6 +87,9 @@ class _HomeScreenState extends State<HomeScreen> {
       currentIndex: _selectedIndex,
       onTap: (i) {
         setState(() => _selectedIndex = i);
+        if (i == 0) {
+          Provider.of<HomeProvider>(context, listen: false).fetchNearbyDeals();
+        }
         if (i == 2) {
           final auth = Provider.of<AuthProvider>(context, listen: false);
           final userId = (auth.user?['id'] as num?)?.toInt() ?? 0;
@@ -527,6 +530,26 @@ class _NearbyDealsSection extends StatelessWidget {
                 ),
               );
             }
+            if (provider.error != null) {
+              return SizedBox(
+                height: 180,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.wifi_off_rounded, color: Colors.grey[400], size: 36),
+                      const SizedBox(height: 8),
+                      Text(provider.error!,
+                          style: TextStyle(color: Colors.grey[500], fontSize: 13)),
+                      TextButton(
+                        onPressed: () => Provider.of<HomeProvider>(context, listen: false).fetchNearbyDeals(),
+                        child: const Text('Coba lagi', style: TextStyle(color: kPrimaryColor)),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
             if (provider.nearbyDeals.isEmpty) {
               return const SizedBox(
                 height: 180,
@@ -670,7 +693,6 @@ class _DealCard extends StatelessWidget {
                 ),
               ),
             ),
-            // Info
             Padding(
               padding: const EdgeInsets.all(10),
               child: Column(

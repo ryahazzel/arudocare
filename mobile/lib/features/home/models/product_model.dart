@@ -8,6 +8,8 @@ class ProductModel {
   final int stock;
   final String category;
   final double distanceKm;
+  final double? latitude;
+  final double? longitude;
   final String? imageUrl;
   final String? description;
   final String? pickupTimeStart;
@@ -23,6 +25,8 @@ class ProductModel {
     required this.stock,
     required this.category,
     required this.distanceKm,
+    this.latitude,
+    this.longitude,
     this.imageUrl,
     this.description,
     this.pickupTimeStart,
@@ -40,6 +44,8 @@ class ProductModel {
       stock: json['stock'] as int,
       category: json['category'] ?? '',
       distanceKm: (json['distance_km'] ?? 0).toDouble(),
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
       imageUrl: json['image_url'],
       description: json['description'],
       pickupTimeStart: (json['pickup_time_start'] as String?)?.substring(0, 5),

@@ -131,8 +131,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 }
 
-// ── Widgets ───────────────────────────────────────────────────────────────────
-
 class _ProductCard extends StatelessWidget {
   final ProductModel product;
   const _ProductCard({required this.product});

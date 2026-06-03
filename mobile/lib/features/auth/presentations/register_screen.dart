@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/theme.dart';
 import '../providers/auth_provider.dart';
+import '../../map/presentations/location_picker_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -16,6 +18,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   String _selectedRole = 'customer';
+  LatLng? _merchantLocation;
 
   @override
   void dispose() {
@@ -23,6 +26,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickLocation() async {
+    final result = await Navigator.push<LatLng>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => LocationPickerScreen(initialLocation: _merchantLocation),
+      ),
+    );
+    if (result != null) {
+      setState(() => _merchantLocation = result);
+    }
   }
 
   Future<void> _register(AuthProvider auth) async {
@@ -41,7 +56,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    final success = await auth.register(name, email, password, _selectedRole);
+    if (_selectedRole == 'merchant' && _merchantLocation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Merchant wajib menentukan lokasi toko'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final success = await auth.register(
+      name,
+      email,
+      password,
+      _selectedRole,
+      latitude: _merchantLocation?.latitude,
+      longitude: _merchantLocation?.longitude,
+    );
     if (!mounted) return;
 
     if (success) {
@@ -77,7 +110,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 32),
-              // Back button + title
               GestureDetector(
                 onTap: () => Navigator.pop(context),
                 child: const Icon(Icons.arrow_back_ios_rounded, size: 22),
@@ -94,7 +126,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 32),
 
-              // Name field
               _buildLabel('Nama Lengkap'),
               const SizedBox(height: 8),
               _buildTextField(
@@ -104,7 +135,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Email field
               _buildLabel('Email'),
               const SizedBox(height: 8),
               _buildTextField(
@@ -115,7 +145,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Password field
               _buildLabel('Password'),
               const SizedBox(height: 8),
               _buildTextField(
@@ -125,16 +154,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 obscure: _obscurePassword,
                 suffix: IconButton(
                   icon: Icon(
-                    _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    _obscurePassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
                     color: Colors.grey[400],
                     size: 20,
                   ),
-                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
               const SizedBox(height: 24),
 
-              // Role selector
               _buildLabel('Daftar Sebagai'),
               const SizedBox(height: 10),
               Row(
@@ -146,7 +177,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       icon: Icons.person_search_outlined,
                       title: 'Customer',
                       description: 'Pencari makanan murah',
-                      onTap: () => setState(() => _selectedRole = 'customer'),
+                      onTap: () => setState(() {
+                        _selectedRole = 'customer';
+                        _merchantLocation = null;
+                      }),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -162,9 +196,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ],
               ),
+
+              if (_selectedRole == 'merchant') ...[
+                const SizedBox(height: 20),
+                _buildLabel('Lokasi Toko'),
+                const SizedBox(height: 10),
+                _LocationPickerTile(
+                  location: _merchantLocation,
+                  onTap: _pickLocation,
+                ),
+              ],
+
               const SizedBox(height: 32),
 
-              // Register button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -172,7 +216,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     backgroundColor: kPrimaryColor,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                     elevation: 0,
                   ),
                   onPressed: auth.isLoading ? null : () => _register(auth),
@@ -180,26 +225,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ? const SizedBox(
                           width: 22,
                           height: 22,
-                          child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2.5, color: Colors.white),
                         )
                       : const Text(
                           'Daftar Sekarang',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                 ),
               ),
               const SizedBox(height: 16),
 
-              // Login link
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Sudah punya akun? ', style: TextStyle(color: Colors.grey[600])),
+                  Text('Sudah punya akun? ',
+                      style: TextStyle(color: Colors.grey[600])),
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: const Text(
                       'Masuk',
-                      style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: kPrimaryColor, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -232,7 +280,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 2)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 6,
+              offset: const Offset(0, 2)),
         ],
       ),
       child: TextField(
@@ -250,7 +301,89 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           filled: true,
           fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        ),
+      ),
+    );
+  }
+}
+
+class _LocationPickerTile extends StatelessWidget {
+  final LatLng? location;
+  final VoidCallback onTap;
+
+  const _LocationPickerTile({required this.location, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasLocation = location != null;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: hasLocation
+              ? kPrimaryColor.withValues(alpha: 0.07)
+              : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: hasLocation ? kPrimaryColor : Colors.grey.shade200,
+            width: hasLocation ? 1.5 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 6,
+                offset: const Offset(0, 2)),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: hasLocation
+                    ? kPrimaryColor.withValues(alpha: 0.15)
+                    : Colors.grey.shade100,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                hasLocation ? Icons.location_on : Icons.add_location_alt_outlined,
+                color: hasLocation ? kPrimaryColor : Colors.grey[500],
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    hasLocation ? 'Lokasi dipilih' : 'Tap untuk pilih lokasi toko',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: hasLocation ? kPrimaryColor : Colors.grey[600],
+                    ),
+                  ),
+                  if (hasLocation) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      '${location!.latitude.toStringAsFixed(6)}, ${location!.longitude.toStringAsFixed(6)}',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: hasLocation ? kPrimaryColor : Colors.grey[400],
+            ),
+          ],
         ),
       ),
     );
@@ -289,7 +422,10 @@ class _RoleCard extends StatelessWidget {
             width: selected ? 2 : 1,
           ),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 2)),
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 6,
+                offset: const Offset(0, 2)),
           ],
         ),
         child: Column(
@@ -301,7 +437,8 @@ class _RoleCard extends StatelessWidget {
                 color: selected ? kPrimaryColor : Colors.grey.shade100,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: selected ? Colors.white : Colors.grey[500], size: 24),
+              child: Icon(icon,
+                  color: selected ? Colors.white : Colors.grey[500], size: 24),
             ),
             const SizedBox(height: 10),
             Text(

@@ -1,66 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../core/api/api_client.dart';
 import '../models/product_model.dart';
-
-// Mock data used until Product Service (port 8002) is ready
-const List<Map<String, dynamic>> _mockProducts = [
-  {
-    'id': '1',
-    'name': 'Nasi Kotak Spesial',
-    'merchant_name': 'Warung Bu Siti',
-    'merchant_id': 1,
-    'original_price': 35000,
-    'discount_price': 15000,
-    'stock': 5,
-    'category': 'Makanan Siap Saji',
-    'distance_km': 0.3,
-  },
-  {
-    'id': '2',
-    'name': 'Croissant Butter',
-    'merchant_name': 'Roti Kita Bakery',
-    'merchant_id': 2,
-    'original_price': 28000,
-    'discount_price': 12000,
-    'stock': 8,
-    'category': 'Bakery',
-    'distance_km': 0.7,
-  },
-  {
-    'id': '3',
-    'name': 'Paket Sayur Mix',
-    'merchant_name': 'Pasar Segar',
-    'merchant_id': 3,
-    'original_price': 20000,
-    'discount_price': 9000,
-    'stock': 12,
-    'category': 'Sayuran',
-    'distance_km': 1.2,
-  },
-  {
-    'id': '4',
-    'name': 'Bento Ayam Teriyaki',
-    'merchant_name': 'Hana Kitchen',
-    'merchant_id': 4,
-    'original_price': 45000,
-    'discount_price': 22000,
-    'stock': 3,
-    'category': 'Makanan Siap Saji',
-    'distance_km': 1.5,
-  },
-  {
-    'id': '5',
-    'name': 'Roti Gandum Sourdough',
-    'merchant_name': 'Artisan Bread Co.',
-    'merchant_id': 5,
-    'original_price': 55000,
-    'discount_price': 25000,
-    'stock': 4,
-    'category': 'Bakery',
-    'distance_km': 2.1,
-  },
-];
 
 class HomeProvider extends ChangeNotifier {
   final ApiClient _apiClient = ApiClient();
@@ -68,31 +11,60 @@ class HomeProvider extends ChangeNotifier {
   List<ProductModel> _nearbyDeals = [];
   bool _isLoading = false;
   String? _error;
+  LatLng? _userLocation;
 
   List<ProductModel> get nearbyDeals => _nearbyDeals;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  LatLng? get userLocation => _userLocation;
 
   Future<void> fetchNearbyDeals() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
+    final position = await _tryGetLocation();
+    if (position != null) {
+      _userLocation = LatLng(position.latitude, position.longitude);
+    }
+
     try {
-      final response = await _apiClient.dio.get('/products');
+      final queryParams = position != null
+          ? {'lat': position.latitude, 'lng': position.longitude}
+          : <String, dynamic>{};
+
+      final response = await _apiClient.dio.get('/products', queryParameters: queryParams);
       if (response.statusCode == 200) {
         final List data = response.data as List;
         _nearbyDeals = data.map((e) => ProductModel.fromJson(e)).toList();
       }
-    } on DioException {
-      // Product service not yet available — fall back to mock data
-      await Future.delayed(const Duration(milliseconds: 300));
-      _nearbyDeals = _mockProducts.map(ProductModel.fromJson).toList();
+    } on DioException catch (e) {
+      _error = e.response?.data?['message'] ?? 'Gagal memuat produk';
     } catch (_) {
-      _nearbyDeals = _mockProducts.map(ProductModel.fromJson).toList();
+      _error = 'Gagal memuat produk';
     }
 
     _isLoading = false;
     notifyListeners();
+  }
+}
+
+Future<Position?> _tryGetLocation() async {
+  try {
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return null;
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) return null;
+    }
+    if (permission == LocationPermission.deniedForever) return null;
+
+    return await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+    );
+  } catch (_) {
+    return null;
   }
 }

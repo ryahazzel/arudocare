@@ -7,21 +7,6 @@ import '../../home/models/product_model.dart';
 import '../../home/providers/home_provider.dart';
 import '../../product/presentations/product_detail_screen.dart';
 
-// Mock coordinates untuk Jakarta Selatan — diganti dengan data GPS dari backend nanti
-final Map<String, LatLng> _merchantCoords = {
-  'Warung Bu Siti':    LatLng(-6.2615, 106.8106),
-  'Roti Kita Bakery':  LatLng(-6.2658, 106.8172),
-  'Pasar Segar':       LatLng(-6.2707, 106.8231),
-  'Hana Kitchen':      LatLng(-6.2743, 106.8267),
-  'Artisan Bread Co.': LatLng(-6.2798, 106.8328),
-};
-
-final _fallbackCoords = [
-  LatLng(-6.2550, 106.8050),
-  LatLng(-6.2680, 106.8020),
-  LatLng(-6.2730, 106.8150),
-];
-
 class _MerchantPin {
   final String merchantName;
   final LatLng position;
@@ -40,26 +25,33 @@ class MapScreen extends StatelessWidget {
   List<_MerchantPin> _buildPins(List<ProductModel> products) {
     final Map<String, List<ProductModel>> grouped = {};
     for (final p in products) {
+      if (p.latitude == null || p.longitude == null) continue;
       grouped.putIfAbsent(p.merchantName, () => []).add(p);
     }
-
-    int fallbackIdx = 0;
     return grouped.entries.map((e) {
-      final coord = _merchantCoords[e.key] ?? _fallbackCoords[fallbackIdx++ % _fallbackCoords.length];
-      return _MerchantPin(merchantName: e.key, position: coord, products: e.value);
+      final first = e.value.first;
+      return _MerchantPin(
+        merchantName: e.key,
+        position: LatLng(first.latitude!, first.longitude!),
+        products: e.value,
+      );
     }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    final products = context.watch<HomeProvider>().nearbyDeals;
+    final provider = context.watch<HomeProvider>();
+    final products = provider.nearbyDeals;
+    final userLocation = provider.userLocation;
     final pins = _buildPins(products);
+
+    final mapCenter = userLocation ?? const LatLng(-6.2088, 106.8456);
 
     return Stack(
       children: [
         FlutterMap(
           options: MapOptions(
-            initialCenter: const LatLng(-6.2680, 106.8190),
+            initialCenter: mapCenter,
             initialZoom: 14.0,
           ),
           children: [
@@ -67,26 +59,69 @@ class MapScreen extends StatelessWidget {
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.arudocare.app',
             ),
+
+            if (userLocation != null)
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: userLocation,
+                    width: 56,
+                    height: 56,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.blue.shade300, width: 1),
+                          ),
+                        ),
+                        Container(
+                          width: 14,
+                          height: 14,
+                          decoration: const BoxDecoration(
+                            color: Colors.blue,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
             MarkerLayer(
               markers: pins.map((pin) => Marker(
-                point: pin.position,
-                width: 52,
-                height: 52,
-                child: GestureDetector(
-                  onTap: () => _showMerchantSheet(context, pin),
-                  child: _MapMarker(productCount: pin.products.length),
-                ),
-              )).toList(),
+                    point: pin.position,
+                    width: 52,
+                    height: 52,
+                    child: GestureDetector(
+                      onTap: () => _showMerchantSheet(context, pin),
+                      child: _MapMarker(productCount: pin.products.length),
+                    ),
+                  )).toList(),
             ),
           ],
         ),
-        // Header overlay
+
         Positioned(
           top: MediaQuery.of(context).padding.top + 12,
           left: 16,
           right: 16,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(14),
@@ -105,11 +140,13 @@ class MapScreen extends StatelessWidget {
                 const Expanded(
                   child: Text(
                     'Peta Makanan Terdekat',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: kPrimaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
@@ -127,6 +164,36 @@ class MapScreen extends StatelessWidget {
             ),
           ),
         ),
+
+        if (pins.isEmpty && products.isNotEmpty)
+          Positioned(
+            bottom: 24,
+            left: 16,
+            right: 16,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 8,
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.grey[400], size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Merchant belum mengatur lokasi toko',
+                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -168,7 +235,8 @@ class _MapMarker extends StatelessWidget {
               ),
             ],
           ),
-          child: const Icon(Icons.storefront_outlined, color: Colors.white, size: 22),
+          child: const Icon(Icons.storefront_outlined,
+              color: Colors.white, size: 22),
         ),
         Positioned(
           top: -4,
@@ -229,7 +297,8 @@ class _MerchantBottomSheet extends StatelessWidget {
                   color: kPrimaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(Icons.storefront_outlined, color: kPrimaryColor, size: 26),
+                child: const Icon(Icons.storefront_outlined,
+                    color: kPrimaryColor, size: 26),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -238,16 +307,19 @@ class _MerchantBottomSheet extends StatelessWidget {
                   children: [
                     Text(
                       pin.merchantName,
-                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          fontSize: 17, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 3),
                     Row(
                       children: [
-                        Icon(Icons.place_outlined, size: 14, color: Colors.grey[500]),
+                        Icon(Icons.place_outlined,
+                            size: 14, color: Colors.grey[500]),
                         const SizedBox(width: 2),
                         Text(
-                          '${pin.products.first.distanceKm} km dari kamu',
-                          style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+                          '${pin.products.first.distanceKm.toStringAsFixed(1)} km dari kamu',
+                          style: TextStyle(
+                              fontSize: 13, color: Colors.grey[500]),
                         ),
                       ],
                     ),
@@ -255,7 +327,8 @@ class _MerchantBottomSheet extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: kPrimaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -298,14 +371,16 @@ class _MerchantBottomSheet extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => ProductDetailScreen(product: pin.products.first),
+                    builder: (_) =>
+                        ProductDetailScreen(product: pin.products.first),
                   ),
                 );
               },
               icon: const Icon(Icons.arrow_forward, size: 18),
               label: const Text(
                 'Lihat Produk',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                style:
+                    TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
               ),
             ),
           ),
@@ -328,7 +403,8 @@ class _ProductRow extends StatelessWidget {
           Container(
             width: 8,
             height: 8,
-            decoration: const BoxDecoration(color: kPrimaryColor, shape: BoxShape.circle),
+            decoration: const BoxDecoration(
+                color: kPrimaryColor, shape: BoxShape.circle),
           ),
           const SizedBox(width: 10),
           Expanded(

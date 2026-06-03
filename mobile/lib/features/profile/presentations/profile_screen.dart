@@ -48,8 +48,6 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-// ── Header ────────────────────────────────────────────────────────────────────
-
 class _ProfileHeader extends StatelessWidget {
   final String name;
   final String email;
@@ -110,8 +108,6 @@ class _ProfileHeader extends StatelessWidget {
     );
   }
 }
-
-// ── Impact card (gamifikasi) ──────────────────────────────────────────────────
 
 class _ImpactCard extends StatelessWidget {
   final int completedCount;
@@ -275,8 +271,6 @@ class _LevelProgressBar extends StatelessWidget {
   }
 }
 
-// ── Stats row ─────────────────────────────────────────────────────────────────
-
 class _StatsRow extends StatelessWidget {
   final int completedCount;
   const _StatsRow({required this.completedCount});
@@ -351,8 +345,6 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// ── Account info ──────────────────────────────────────────────────────────────
-
 class _AccountCard extends StatelessWidget {
   final String name;
   final String email;
@@ -413,8 +405,6 @@ class _InfoTile extends StatelessWidget {
     );
   }
 }
-
-// ── Logout ────────────────────────────────────────────────────────────────────
 
 class _LogoutButton extends StatelessWidget {
   @override

@@ -92,7 +92,6 @@ class OrderProvider with ChangeNotifier {
         _orders = List<Map<String, dynamic>>.from(response.data as List);
       }
     } on DioException {
-      // Pertahankan _orders yang ada (termasuk demo order dari session ini)
     }
 
     _isLoading = false;

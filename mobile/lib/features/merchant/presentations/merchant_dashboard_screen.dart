@@ -29,6 +29,12 @@ class _MerchantDashboardScreenState extends State<MerchantDashboardScreen> {
     await context.read<MerchantProvider>().fetchOrders(merchantId);
   }
 
+  Future<void> _fetchInventory() async {
+    final auth = context.read<AuthProvider>();
+    final merchantId = (auth.user?['id'] as num?)?.toInt() ?? 0;
+    await context.read<MerchantProvider>().fetchInventory(merchantId);
+  }
+
   void _onNavTap(int index) {
     setState(() => _currentIndex = index);
   }
@@ -38,7 +44,10 @@ class _MerchantDashboardScreenState extends State<MerchantDashboardScreen> {
       context,
       MaterialPageRoute(builder: (_) => const AddListingScreen()),
     );
-    if (result == true && mounted) await _fetchOrders();
+    if (result == true && mounted) {
+      await _fetchOrders();
+      await _fetchInventory();
+    }
   }
 
   Future<void> _openScanner() async {
@@ -199,8 +208,6 @@ class _MerchantDashboardScreenState extends State<MerchantDashboardScreen> {
   }
 }
 
-// ── Header greeting ───────────────────────────────────────────────────────────
-
 class _GreetingHeader extends StatelessWidget {
   final String name;
   const _GreetingHeader({required this.name});
@@ -244,8 +251,6 @@ class _GreetingHeader extends StatelessWidget {
     return 'Selamat malam! Rekap pesanan hari ini.';
   }
 }
-
-// ── Stats cards ───────────────────────────────────────────────────────────────
 
 class _StatsSection extends StatelessWidget {
   final double revenue;
@@ -350,9 +355,6 @@ class _StatCard extends StatelessWidget {
     );
   }
 }
-
-// ── Section title ─────────────────────────────────────────────────────────────
-
 class _SectionTitle extends StatelessWidget {
   final String title;
   final int count;
@@ -387,8 +389,6 @@ class _SectionTitle extends StatelessWidget {
     );
   }
 }
-
-// ── Order card ────────────────────────────────────────────────────────────────
 
 class _OrderCard extends StatelessWidget {
   final Map<String, dynamic> order;
@@ -476,9 +476,6 @@ class _OrderCard extends StatelessWidget {
     );
   }
 }
-
-// ── Empty state ───────────────────────────────────────────────────────────────
-
 class _EmptyOrders extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -517,8 +514,6 @@ class _EmptyOrders extends StatelessWidget {
   }
 }
 
-// ── FAB ───────────────────────────────────────────────────────────────────────
-
 class _PostingFAB extends StatelessWidget {
   final VoidCallback onTap;
   const _PostingFAB({required this.onTap});
@@ -535,8 +530,6 @@ class _PostingFAB extends StatelessWidget {
     );
   }
 }
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 String _fmt(double price) {
   final val = price.toInt();

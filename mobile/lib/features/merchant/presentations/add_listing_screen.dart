@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/theme.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../map/presentations/location_picker_screen.dart';
 import '../providers/merchant_provider.dart';
 
 const _categories = {
@@ -28,6 +30,22 @@ class _AddListingScreenState extends State<AddListingScreen> {
   int _selectedCategoryId = 1;
   TimeOfDay _startTime = const TimeOfDay(hour: 18, minute: 0);
   TimeOfDay _endTime = const TimeOfDay(hour: 21, minute: 0);
+  LatLng? _location;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _prefillMerchantLocation());
+  }
+
+  void _prefillMerchantLocation() {
+    final auth = context.read<AuthProvider>();
+    final lat = (auth.user?['latitude'] as num?)?.toDouble();
+    final lng = (auth.user?['longitude'] as num?)?.toDouble();
+    if (lat != null && lng != null) {
+      setState(() => _location = LatLng(lat, lng));
+    }
+  }
 
   @override
   void dispose() {
@@ -36,6 +54,16 @@ class _AddListingScreenState extends State<AddListingScreen> {
     _originalPriceCtrl.dispose();
     _discountPriceCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickLocation() async {
+    final result = await Navigator.push<LatLng>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => LocationPickerScreen(initialLocation: _location),
+      ),
+    );
+    if (result != null) setState(() => _location = result);
   }
 
   String _fmtTime(TimeOfDay t) =>
@@ -106,6 +134,8 @@ class _AddListingScreenState extends State<AddListingScreen> {
           categoryId: _selectedCategoryId,
           pickupTimeStart: _fmtTime(_startTime),
           pickupTimeEnd: _fmtTime(_endTime),
+          latitude: _location?.latitude,
+          longitude: _location?.longitude,
         );
 
     if (!mounted) return;
@@ -266,6 +296,38 @@ class _AddListingScreenState extends State<AddListingScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+            _SectionCard(
+              title: 'Lokasi Toko',
+              icon: Icons.location_on_outlined,
+              children: [
+                _LocationPickerTile(
+                  location: _location,
+                  onTap: _pickLocation,
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: kPrimaryColor.withValues(alpha: 0.07),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline,
+                          size: 14, color: kPrimaryColor.withValues(alpha: 0.8)),
+                      const SizedBox(width: 6),
+                      const Expanded(
+                        child: Text(
+                          'Lokasi digunakan untuk menampilkan toko di peta customer',
+                          style: TextStyle(fontSize: 11),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
@@ -294,9 +356,6 @@ class _AddListingScreenState extends State<AddListingScreen> {
     );
   }
 }
-
-// ── Section wrapper ───────────────────────────────────────────────────────────
-
 class _SectionCard extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -330,8 +389,6 @@ class _SectionCard extends StatelessWidget {
     );
   }
 }
-
-// ── Category selector ─────────────────────────────────────────────────────────
 
 class _CategorySelector extends StatelessWidget {
   final int selected;
@@ -369,8 +426,6 @@ class _CategorySelector extends StatelessWidget {
     );
   }
 }
-
-// ── Stock selector ────────────────────────────────────────────────────────────
 
 class _StockSelector extends StatelessWidget {
   final int value;
@@ -418,8 +473,6 @@ class _QtyBtn extends StatelessWidget {
   }
 }
 
-// ── Time picker tile ──────────────────────────────────────────────────────────
-
 class _TimePicker extends StatelessWidget {
   final String label;
   final String time;
@@ -456,7 +509,61 @@ class _TimePicker extends StatelessWidget {
   }
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+class _LocationPickerTile extends StatelessWidget {
+  final LatLng? location;
+  final VoidCallback onTap;
+  const _LocationPickerTile({required this.location, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasLocation = location != null;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: hasLocation ? kPrimaryColor.withValues(alpha: 0.06) : Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: hasLocation ? kPrimaryColor.withValues(alpha: 0.4) : Colors.grey.shade200,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              hasLocation ? Icons.location_on : Icons.add_location_alt_outlined,
+              color: hasLocation ? kPrimaryColor : Colors.grey[500],
+              size: 22,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    hasLocation ? 'Lokasi dipilih' : 'Pilih lokasi toko di peta',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: hasLocation ? kPrimaryColor : Colors.grey[600],
+                    ),
+                  ),
+                  if (hasLocation)
+                    Text(
+                      '${location!.latitude.toStringAsFixed(6)}, ${location!.longitude.toStringAsFixed(6)}',
+                      style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                    ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right,
+                color: hasLocation ? kPrimaryColor : Colors.grey[400]),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 Widget _label(String text) =>
     Text(text, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600));
