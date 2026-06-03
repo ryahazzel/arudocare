@@ -3,7 +3,9 @@ const Product = require('../models/productModel');
 const productController = {
     getAll: async (req, res) => {
         try {
-            const products = await Product.findAll();
+            const lat = req.query.lat ? parseFloat(req.query.lat) : null;
+            const lng = req.query.lng ? parseFloat(req.query.lng) : null;
+            const products = await Product.findAll(lat, lng);
             res.json(products);
         } catch (error) {
             console.error(error);

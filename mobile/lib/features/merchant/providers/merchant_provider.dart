@@ -34,12 +34,12 @@ class MerchantProvider with ChangeNotifier {
               dt.month == today.month &&
               dt.day == today.day;
         })
-        .fold(0.0, (sum, o) => sum + ((o['total_price'] as num?)?.toDouble() ?? 0));
+        .fold(0.0, (sum, o) => sum + (double.tryParse(o['total_price']?.toString() ?? '') ?? (o['total_price'] as num?)?.toDouble() ?? 0));
   }
 
   int get portionsSaved => _orders
       .where((o) => o['status'] == 'completed')
-      .fold(0, (sum, o) => sum + ((o['quantity'] as int?) ?? 0));
+      .fold(0, (sum, o) => sum + ((o['quantity'] as num?)?.toInt() ?? int.tryParse(o['quantity']?.toString() ?? '') ?? 0));
 
   Future<void> fetchOrders(int merchantId) async {
     _isLoading = true;

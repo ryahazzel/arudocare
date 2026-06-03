@@ -7,13 +7,16 @@ const User = {
         return result.rows[0];
     },
 
-    create: async (name, email, passwordHash, role) => {
+    create: async (name, email, passwordHash, role, latitude, longitude) => {
         const query = `
-            INSERT INTO users (name, email, password_hash, role) 
-            VALUES ($1, $2, $3, $4) 
-            RETURNING id, name, email, role, created_at
+            INSERT INTO users (name, email, password_hash, role, latitude, longitude)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING id, name, email, role, latitude, longitude, created_at
         `;
-        const result = await pool.query(query, [name, email, passwordHash, role || 'customer']);
+        const result = await pool.query(query, [
+            name, email, passwordHash, role || 'customer',
+            latitude ?? null, longitude ?? null,
+        ]);
         return result.rows[0];
     }
 };

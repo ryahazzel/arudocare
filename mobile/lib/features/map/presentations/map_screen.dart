@@ -19,8 +19,15 @@ class _MerchantPin {
   });
 }
 
-class MapScreen extends StatelessWidget {
+class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
+
+  @override
+  State<MapScreen> createState() => _MapScreenState();
+}
+
+class _MapScreenState extends State<MapScreen> {
+  final MapController _mapController = MapController();
 
   List<_MerchantPin> _buildPins(List<ProductModel> products) {
     final Map<String, List<ProductModel>> grouped = {};
@@ -38,6 +45,11 @@ class MapScreen extends StatelessWidget {
     }).toList();
   }
 
+  void _goToMyLocation(LatLng? userLocation) {
+    if (userLocation == null) return;
+    _mapController.move(userLocation, 15.0);
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<HomeProvider>();
@@ -50,6 +62,7 @@ class MapScreen extends StatelessWidget {
     return Stack(
       children: [
         FlutterMap(
+          mapController: _mapController,
           options: MapOptions(
             initialCenter: mapCenter,
             initialZoom: 14.0,
@@ -162,6 +175,19 @@ class MapScreen extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ),
+
+        Positioned(
+          bottom: pins.isEmpty && products.isNotEmpty ? 90 : 24,
+          right: 16,
+          child: FloatingActionButton.small(
+            heroTag: 'my_location',
+            backgroundColor: Colors.white,
+            foregroundColor: userLocation != null ? kPrimaryColor : Colors.grey,
+            elevation: 4,
+            onPressed: () => _goToMyLocation(userLocation),
+            child: const Icon(Icons.my_location_rounded),
           ),
         ),
 

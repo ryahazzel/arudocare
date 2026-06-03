@@ -396,10 +396,10 @@ class _OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final productName = order['product_name'] as String? ?? '-';
-    final quantity = order['quantity'] as int? ?? 1;
-    final totalPrice = (order['total_price'] as num?)?.toDouble() ?? 0;
-    final createdAt = _fmtDate(order['created_at'] as String?);
+    final productName = order['product_name']?.toString() ?? '-';
+    final quantity = (order['quantity'] as num?)?.toInt() ?? int.tryParse(order['quantity']?.toString() ?? '') ?? 1;
+    final totalPrice = double.tryParse(order['total_price']?.toString() ?? '') ?? (order['total_price'] as num?)?.toDouble() ?? 0;
+    final createdAt = _fmtDate(order['created_at']?.toString());
 
     return Container(
       padding: const EdgeInsets.all(14),

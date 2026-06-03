@@ -88,9 +88,9 @@ class _InventoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final name = product['name'] as String? ?? '-';
-    final originalPrice = (product['original_price'] as num?)?.toDouble() ?? 0;
-    final discountPrice = (product['discount_price'] as num?)?.toDouble() ?? 0;
-    final stock = product['stock'] as int? ?? 0;
+    final originalPrice = double.tryParse(product['original_price']?.toString() ?? '') ?? (product['original_price'] as num?)?.toDouble() ?? 0;
+    final discountPrice = double.tryParse(product['discount_price']?.toString() ?? '') ?? (product['discount_price'] as num?)?.toDouble() ?? 0;
+    final stock = (product['stock'] as num?)?.toInt() ?? int.tryParse(product['stock']?.toString() ?? '') ?? 0;
     final category = product['category'] as String? ?? '-';
     final isActive = product['is_active'] as bool? ?? true;
 

@@ -1,13 +1,43 @@
 const pool = require('../config/db');
 
 const Product = {
-    findAll: async () => {
+    findAll: async (userLat, userLng) => {
+        const hasLocation = userLat != null && userLng != null;
+
+        if (hasLocation) {
+            const query = `
+                SELECT p.id, p.name, p.description,
+                       p.original_price::float AS original_price,
+                       p.discount_price::float AS discount_price,
+                       p.stock, p.merchant_id, p.merchant_name, p.image_url,
+                       p.pickup_time_start, p.pickup_time_end,
+                       p.latitude::float, p.longitude::float,
+                       CASE
+                           WHEN p.latitude IS NOT NULL AND p.longitude IS NOT NULL THEN
+                               (6371 * acos(LEAST(1.0,
+                                   cos(radians($1)) * cos(radians(p.latitude)) *
+                                   cos(radians(p.longitude) - radians($2)) +
+                                   sin(radians($1)) * sin(radians(p.latitude))
+                               )))
+                           ELSE p.distance_km
+                       END::float AS distance_km,
+                       p.is_active, p.created_at, c.name AS category
+                FROM products p
+                LEFT JOIN categories c ON p.category_id = c.id
+                WHERE p.stock > 0 AND p.is_active = TRUE
+                ORDER BY distance_km ASC
+            `;
+            const result = await pool.query(query, [userLat, userLng]);
+            return result.rows;
+        }
+
         const query = `
             SELECT p.id, p.name, p.description,
                    p.original_price::float AS original_price,
                    p.discount_price::float AS discount_price,
                    p.stock, p.merchant_id, p.merchant_name, p.image_url,
                    p.pickup_time_start, p.pickup_time_end,
+                   p.latitude::float, p.longitude::float,
                    p.distance_km::float AS distance_km,
                    p.is_active, p.created_at, c.name AS category
             FROM products p
@@ -53,20 +83,23 @@ const Product = {
             name, description, original_price, discount_price, stock,
             category_id, merchant_id, merchant_name, image_url,
             pickup_time_start, pickup_time_end, distance_km,
+            latitude, longitude,
         } = data;
 
         const query = `
             INSERT INTO products
                 (name, description, original_price, discount_price, stock,
                  category_id, merchant_id, merchant_name, image_url,
-                 pickup_time_start, pickup_time_end, distance_km)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+                 pickup_time_start, pickup_time_end, distance_km,
+                 latitude, longitude)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
             RETURNING *
         `;
         const result = await pool.query(query, [
             name, description, original_price, discount_price, stock,
             category_id, merchant_id, merchant_name, image_url,
             pickup_time_start, pickup_time_end, distance_km ?? 0,
+            latitude ?? null, longitude ?? null,
         ]);
         return result.rows[0];
     },

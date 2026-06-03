@@ -739,7 +739,7 @@ class _DealCard extends StatelessWidget {
                           Icon(Icons.place_outlined,
                               size: 12, color: Colors.grey[400]),
                           Text(
-                            '${product.distanceKm} km',
+                            '${product.distanceKm.toStringAsFixed(1)} km',
                             style: TextStyle(
                                 fontSize: 11, color: Colors.grey[400]),
                           ),
