@@ -4,7 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/api/api_client.dart';
 
 class AuthProvider with ChangeNotifier {
-  final ApiClient _apiClient = ApiClient();
+  final ApiClient _apiClient;
+
+  AuthProvider({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -75,8 +77,8 @@ class AuthProvider with ChangeNotifier {
         'email': email,
         'password': password,
         'role': role,
-        'latitude': ?latitude,
-        'longitude': ?longitude,
+        if (latitude != null) 'latitude': latitude,
+        if (longitude != null) 'longitude': longitude,
       });
 
       if (response.statusCode == 201) {

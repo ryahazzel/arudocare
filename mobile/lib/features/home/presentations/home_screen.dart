@@ -4,6 +4,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import '../../../shared/theme.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../product/presentations/product_detail_screen.dart';
+import '../../explore/presentations/explore_screen.dart';
 import '../../map/presentations/map_screen.dart';
 import '../../order/presentations/orders_screen.dart';
 import '../../order/providers/order_provider.dart';
@@ -21,6 +22,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _activeBannerIndex = 0;
   int _selectedIndex = 0;
+  final _exploreKey = GlobalKey<ExploreScreenState>();
+
+  void _goToExplore({String? category}) {
+    setState(() => _selectedIndex = 1);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _exploreKey.currentState?.setFilter(category: category);
+    });
+  }
 
   @override
   void initState() {
@@ -39,10 +48,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: kBackgroundColor,
       appBar: _selectedIndex == 0 ? _buildAppBar(context) : null,
+      extendBodyBehindAppBar: _selectedIndex != 0,
       body: IndexedStack(
         index: _selectedIndex,
         children: [
           _buildHomeBody(),
+          ExploreScreen(key: _exploreKey),
           const MapScreen(),
           const OrdersScreen(),
           const ProfileScreen(),
@@ -90,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (i == 0) {
           Provider.of<HomeProvider>(context, listen: false).fetchNearbyDeals();
         }
-        if (i == 2) {
+        if (i == 3) {
           final auth = Provider.of<AuthProvider>(context, listen: false);
           final userId = (auth.user?['id'] as num?)?.toInt() ?? 0;
           Provider.of<OrderProvider>(context, listen: false).fetchUserOrders(userId);
@@ -107,6 +118,11 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: Icon(Icons.home_outlined),
           activeIcon: Icon(Icons.home_rounded),
           label: 'Beranda',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.explore_outlined),
+          activeIcon: Icon(Icons.explore_rounded),
+          label: 'Jelajahi',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.map_outlined),
@@ -469,7 +485,11 @@ class _CategoryItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {},
+      onTap: () {
+        final state =
+            context.findAncestorStateOfType<_HomeScreenState>();
+        state?._goToExplore(category: data.label);
+      },
       child: Column(
         children: [
           Container(
@@ -511,7 +531,11 @@ class _NearbyDealsSection extends StatelessWidget {
                     TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  final state = context
+                      .findAncestorStateOfType<_HomeScreenState>();
+                  state?._goToExplore();
+                },
                 child: Text(
                   'Lihat Semua',
                   style: TextStyle(color: kPrimaryColor, fontSize: 13),

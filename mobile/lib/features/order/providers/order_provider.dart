@@ -4,7 +4,9 @@ import '../../../core/api/api_client.dart';
 import '../../home/models/product_model.dart';
 
 class OrderProvider with ChangeNotifier {
-  final ApiClient _apiClient = ApiClient();
+  final ApiClient _apiClient;
+
+  OrderProvider({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
 
   bool _isLoading = false;
   String? _error;

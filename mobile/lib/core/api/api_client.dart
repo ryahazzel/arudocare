@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 
 class ApiClient {
-  static const String baseUrl = 'http://10.20.177.116:8000/api';
+  // USB physical device: requires `adb reverse tcp:8000 tcp:8000` before running
+  // Android emulator: ganti ke 'http://10.0.2.2:8000/api'
+  static const String baseUrl = 'http://localhost:8000/api';
 
   final Dio dio = Dio(BaseOptions(
     baseUrl: baseUrl,
