@@ -45,9 +45,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final locationName = context.watch<HomeProvider>().locationName;
     return Scaffold(
       backgroundColor: kBackgroundColor,
-      appBar: _selectedIndex == 0 ? _buildAppBar(context) : null,
+      appBar: _selectedIndex == 0 ? _buildAppBar(context, locationName) : null,
       extendBodyBehindAppBar: _selectedIndex != 0,
       body: IndexedStack(
         index: _selectedIndex,
@@ -103,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         if (i == 3) {
           final auth = Provider.of<AuthProvider>(context, listen: false);
-          final userId = (auth.user?['id'] as num?)?.toInt() ?? 0;
+          final userId = int.tryParse(auth.user?['id']?.toString() ?? '') ?? 0;
           Provider.of<OrderProvider>(context, listen: false).fetchUserOrders(userId);
         }
       },
@@ -143,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
+  PreferredSizeWidget _buildAppBar(BuildContext context, String locationName) {
     return AppBar(
       backgroundColor: kPrimaryColor,
       elevation: 0,
@@ -152,12 +153,15 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           const Icon(Icons.location_on_outlined, color: Colors.white, size: 20),
           const SizedBox(width: 4),
-          const Text(
-            'Jakarta Selatan',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+          Flexible(
+            child: Text(
+              locationName,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 18),

@@ -38,21 +38,26 @@ class ProductModel {
       id: json['id'].toString(),
       name: json['name'],
       merchantName: json['merchant_name'] ?? '',
-      merchantId: (json['merchant_id'] as num?)?.toInt() ?? 0,
-      originalPrice: (json['original_price'] as num).toDouble(),
-      discountPrice: (json['discount_price'] as num).toDouble(),
-      stock: json['stock'] as int,
+      merchantId: int.tryParse(json['merchant_id']?.toString() ?? '') ?? 0,
+      originalPrice: double.parse(json['original_price'].toString()),
+      discountPrice: double.parse(json['discount_price'].toString()),
+      stock: int.parse(json['stock'].toString()),
       category: json['category'] ?? '',
       distanceKm: (json['distance_km'] ?? 0).toDouble(),
-      latitude: (json['latitude'] as num?)?.toDouble(),
-      longitude: (json['longitude'] as num?)?.toDouble(),
+      latitude: json['latitude'] == null ? null : double.tryParse(json['latitude'].toString()),
+      longitude: json['longitude'] == null ? null : double.tryParse(json['longitude'].toString()),
       imageUrl: json['image_url'],
       description: json['description'],
-      pickupTimeStart: (json['pickup_time_start'] as String?)?.substring(0, 5),
-      pickupTimeEnd: (json['pickup_time_end'] as String?)?.substring(0, 5),
+      pickupTimeStart: _safeSubstring(json['pickup_time_start'] as String?),
+      pickupTimeEnd: _safeSubstring(json['pickup_time_end'] as String?),
     );
   }
 
   int get discountPercent =>
       ((1 - discountPrice / originalPrice) * 100).round();
+}
+
+String? _safeSubstring(String? value) {
+  if (value == null || value.length < 5) return value;
+  return value.substring(0, 5);
 }

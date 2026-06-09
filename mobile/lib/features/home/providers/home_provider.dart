@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../core/api/api_client.dart';
@@ -12,11 +13,13 @@ class HomeProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   LatLng? _userLocation;
+  String _locationName = 'Mencari lokasi...';
 
   List<ProductModel> get nearbyDeals => _nearbyDeals;
   bool get isLoading => _isLoading;
   String? get error => _error;
   LatLng? get userLocation => _userLocation;
+  String get locationName => _locationName;
 
   Future<void> fetchNearbyDeals() async {
     _isLoading = true;
@@ -26,6 +29,9 @@ class HomeProvider extends ChangeNotifier {
     final position = await _tryGetLocation();
     if (position != null) {
       _userLocation = LatLng(position.latitude, position.longitude);
+      _locationName = await _resolveLocationName(position.latitude, position.longitude);
+    } else {
+      _locationName = 'Lokasi tidak tersedia';
     }
 
     try {
@@ -47,6 +53,20 @@ class HomeProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
+}
+
+Future<String> _resolveLocationName(double lat, double lng) async {
+  try {
+    final placemarks = await placemarkFromCoordinates(lat, lng);
+    if (placemarks.isNotEmpty) {
+      final place = placemarks.first;
+      final subLocality = place.subLocality;
+      final locality = place.locality;
+      if (subLocality != null && subLocality.isNotEmpty) return subLocality;
+      if (locality != null && locality.isNotEmpty) return locality;
+    }
+  } catch (_) {}
+  return 'Lokasi Anda';
 }
 
 Future<Position?> _tryGetLocation() async {

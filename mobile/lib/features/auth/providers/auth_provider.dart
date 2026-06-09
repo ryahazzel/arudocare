@@ -14,6 +14,9 @@ class AuthProvider with ChangeNotifier {
   String? _token;
   String? get token => _token;
 
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
+
   Map<String, dynamic>? _user;
   Map<String, dynamic>? get user => _user;
   String get userName => _user?['name'] ?? 'Pengguna';
@@ -71,6 +74,7 @@ class AuthProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
+    _errorMessage = null;
     try {
       final response = await _apiClient.dio.post('/auth/register', data: {
         'name': name,
@@ -88,6 +92,16 @@ class AuthProvider with ChangeNotifier {
       }
     } on DioException catch (e) {
       print('Register Error: ${e.response?.data}');
+      if (e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        _errorMessage = 'Tidak dapat terhubung ke server. Pastikan HP dan PC 1 jaringan WiFi.';
+      } else if (e.response?.statusCode == 409 || e.response?.statusCode == 400) {
+        final msg = e.response?.data?['message'] ?? e.response?.data?['error'];
+        _errorMessage = msg ?? 'Email sudah terdaftar.';
+      } else {
+        _errorMessage = 'Registrasi gagal. Coba lagi.';
+      }
     }
 
     _isLoading = false;

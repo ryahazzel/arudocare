@@ -11,8 +11,8 @@ class OrderSuccessScreen extends StatelessWidget {
     final qrCode = order['qr_code'] as String? ?? '';
     final productName = order['product_name'] as String? ?? '';
     final merchantName = order['merchant_name'] as String? ?? '';
-    final quantity = order['quantity'] as int? ?? 1;
-    final totalPrice = (order['total_price'] as num?)?.toDouble() ?? 0;
+    final quantity = int.tryParse(order['quantity']?.toString() ?? '') ?? 1;
+    final totalPrice = double.tryParse(order['total_price']?.toString() ?? '') ?? 0;
 
     return Scaffold(
       backgroundColor: kBackgroundColor,

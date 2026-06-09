@@ -25,7 +25,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Future<void> _placeOrder() async {
     final auth = context.read<AuthProvider>();
     final orderProvider = context.read<OrderProvider>();
-    final userId = (auth.user?['id'] as num?)?.toInt() ?? 0;
+    final userId = int.tryParse(auth.user?['id']?.toString() ?? '') ?? 0;
 
     final success = await orderProvider.createOrder(
       userId: userId,
@@ -36,13 +36,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     if (!mounted) return;
 
-    if (success) {
+    if (success && orderProvider.lastOrder != null) {
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => OrderSuccessScreen(order: orderProvider.lastOrder!),
         ),
       );
+    } else if (success) {
+      Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
